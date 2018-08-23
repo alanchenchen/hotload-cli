@@ -1,6 +1,6 @@
 {
   "name": "hotload-cli",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A cli to run a javascrpit or cmd by hot-reloading",
   "bin": {
     "hotload": "bin/hotload"
@@ -13,7 +13,7 @@
   ],
   "author": "Alan Chen",
   "license": "MIT",
-  "devDependencies": {
+  "dependencies": {
     "chalk": "^2.4.1"
   }
 }

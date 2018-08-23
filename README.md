@@ -1,7 +1,7 @@
 # hotload-cli
 > A CLI to run a javascrpit or cmd by hot-reloading
 
-> version:  0.0.1
+> version:  0.0.2
 
 > Author:  Alan Chen
 

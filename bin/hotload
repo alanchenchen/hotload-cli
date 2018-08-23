@@ -1,0 +1,58 @@
+#!/usr/bin/env node
+
+const chalk = require('chalk')
+const { exec, execFile } = require('child_process')
+const { cli, showUsage } = require('../utils/cli')
+const watch = require('../utils/watch')
+
+
+const args = process.argv
+const cmdMethod = args[0]
+const rest = [...args].slice(2)
+
+
+cli(rest)
+    .then(({file, res}) => {
+        const type = res.type
+        const val = res.val
+
+        if(type == 'null') {
+            watch(file)
+        }
+        else if(type == 'load') {
+            watch(file, val)
+        }
+        else if(type == 'cmd') {
+            watch(file, () => {
+                // in order to make the npm CLI compatible, must use exec to execute .bat or .cmd with shell mode
+                // 为了兼容npm包的全局命令，只能使用exec衍生shell来运行bat或cmd文件
+                return exec(val.join(' '), (err, stdout, stderr) => {
+                    if(err) {
+                        console.log(err)
+                    }
+                    console.log(stdout)
+                })
+            })
+        }
+        // console.log(res)
+    })
+    .catch((res) => {
+        // handle all errors
+        const isError = Object.prototype.toString.call(res) == '[object Error]'
+        if(isError) {
+            console.log(res)
+        }
+        const type = res.type
+        const index = res.index
+
+        if(index == 0 && type == 'version') {
+            console.log(require('../package.json').version)
+        }
+        else if(index == 0 && (type == 'help' || type == 'error')) {
+            showUsage()
+            console.log(chalk.yellow('hotload must be before a valid nodejs with .js extname'))
+        }
+        else if(index == 1 && type == 'error') {
+            console.log(chalk.red('if an option is provided ,it is only could be --load or --cmd'))
+        }
+    })

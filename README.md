@@ -1,4 +1,9 @@
 # hotload-cli
+
+![](https://img.shields.io/npm/v/hotload-cli.svg)
+![](https://img.shields.io/npm/dt/hotload-cli.svg)
+![](https://img.shields.io/github/license/alanchenchen/hotload-cli.svg)
+
 > A CLI to run a javascrpit or cmd by hot-reloading
 
 > version:  0.0.2

@@ -1,6 +1,7 @@
 {
   "name": "hotload-cli",
-  "version": "0.0.2",
+  "version": "0.0.3",
+  "author": "Alan Chen",
   "description": "A cli to run a javascrpit or cmd by hot-reloading",
   "bin": {
     "hotload": "bin/hotload"
@@ -11,9 +12,22 @@
     "nodejs",
     "hot-reloading"
   ],
-  "author": "Alan Chen",
   "license": "MIT",
+  "private": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alanchenchen/hotload-cli"
+  },
+  "homepage": "https://github.com/alanchenchen/hotload-cli#readme",
+  "bugs": {
+    "url": "https://github.com/alanchenchen/hotload-cli/issues",
+    "email": "739709491@qq.com"
+  },
   "dependencies": {
+    "@alanchenchen/commandlineflag": "^0.0.5",
     "chalk": "^2.4.1"
+  },
+  "engines": {
+    "node": ">= v8.11.1"
   }
 }

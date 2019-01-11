@@ -34,12 +34,14 @@
                 console.log(stdout)
             })
         })
+    6. 监听一个目录，启动指定的nodejs子进程，然后热更新指定的nodejs
+        hotLoad('example', 'std.js')
 */
 
 const { watch } = require('fs')
 const chalk = require('chalk')
-const { join, resolve, basename } = require('path')
-const { execFile, exec, fork } = require('child_process')
+const { resolve, basename } = require('path')
+const { fork } = require('child_process')
 
 // init a subProcess
 const initProcess = (file, args = []) => {
@@ -75,7 +77,7 @@ const hotLoad = (file, loadFile) => {
     console.log(chalk.green(`hotload is starting with ${basename(file)}`))
     let subProcess = checkParam(file, loadFile)
 
-    watch(resolve(__dirname, file), (type, name) => {
+    watch(resolve(__dirname, file), {recursive: true}, (type, name) => {
         // console.log(`${name} has been ${type}d`)
         // 通过child_process的connected属性来判断当前子进程是否与主进程通信，用作判断子进程是否会自动退出的依据
         const subProcessAutoFinished = (subProcess.connected === false && subProcess.exitCode == 0) // 正常自动退出code为0，避免fs.watch因为系统问题多次触发事件而重复打开进程

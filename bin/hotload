@@ -1,58 +1,184 @@
 #!/usr/bin/env node
 
+const { join, extname } = require('path')
+const { access, statSync } = require('fs')
+const { exec } = require('child_process')
+const { flag, output } = require('@alanchenchen/commandlineflag')
 const chalk = require('chalk')
-const { exec, execFile } = require('child_process')
-const { cli, showUsage } = require('../utils/cli')
 const watch = require('../utils/watch')
+const { defaultDoc, paramDoc, loadDoc, cmdDoc } = require('../utils/doc')
 
+const ROOTPATH = process.cwd()
+const version = require('../package.json').version
 
-const args = process.argv
-const cmdMethod = args[0]
-const rest = [...args].slice(2)
+const doc = output()
+const program = flag()
+// CLI contents that contain Usage and Options
+doc.write(defaultDoc)
+const renderDoc = doc.render(false)
 
+/**
+ * @function check  check whether path exists
+ * @param path file or directory absolute path
+ * @param succeed while path exist, trigger callback
+ * @param fail while path doesn't exist, trigger callback
+ */
+const checkExist =  (path, succeed, fail) => {
+    return new Promise((resolve, reject) => {
+        access(path, (err) => {
+            if(err) {
+                // console.error(err)
+                fail && fail()
+                resolve(false)
+            }
+            else {
+                const stat = statSync(path)
+                let type, ext
+                if(stat.isFile()) {
+                    type = 'file'
+                }
+                else if(stat.isDirectory()) {
+                    type = 'directory'
+                }
+                ext = extname(path)
+                succeed && succeed(type, ext)
+                resolve(true)
+            }
+        })
+    })
+}
 
-cli(rest)
-    .then(({file, res}) => {
-        const type = res.type
-        const val = res.val
+/**
+ * global cli params
+ * 
+ * @cmd {Array} command list 
+ * @argument {Array} process argument list 
+ * @load {String} nodejs that will be reloading
+ */
+let watchArgs = {
+    cmd: [],
+    argument: [],
+    load: ''
+}
 
-        if(type == 'null') {
-            watch(file)
-        }
-        else if(type == 'load') {
-            watch(file, val)
-        }
-        else if(type == 'cmd') {
-            watch(file, () => {
-                // in order to make the npm CLI compatible, must use exec to execute .bat or .cmd with shell mode
-                // 为了兼容npm包的全局命令，只能使用exec衍生shell来运行bat或cmd文件
-                return exec(val.join(' '), (err, stdout, stderr) => {
-                    if(err) {
-                        console.log(err)
+program
+    .inject(doc)
+    // handle the flag -h | --help
+    .param({
+        flag: '-h | --help',
+        action({index, param}, args) {
+            const helpArg = args[index-1]
+            if(helpArg) {
+                // output the proper doc
+                const flagMap = {
+                    '--param | -p': paramDoc,
+                    '--load | -l': loadDoc,
+                    '--cmd | -c': cmdDoc
+                }
+                
+                for(key of Object.keys(flagMap)) {
+                    if(key.split(' | ').includes(helpArg)) {
+                        console.log(flagMap[key])
                     }
-                    console.log(stdout)
-                })
+                }
+            }
+            else {
+                console.log(renderDoc)
+            }
+        }
+    })
+    // handle the flag --param, when you watch one nodejs with some arguments
+    .option('--param | -p', ({index, param}, args) => {
+        // argments that will be reloading
+        watchArgs.argument = args.slice(index+1) || []
+    })
+    // handle the flag --cmd, when you watch one nodejs and reload a command
+    .option('--cmd | -c', ({index, param}, args) => {
+        // command that will be reloading
+        const cmd = args.slice(index+1) || []
+        if(cmd.length >= 1) {
+            const needHelpForCMD = args[index+1] == '-h'
+                                || args[index+1] == '--help'
+            if(!needHelpForCMD) {
+                watchArgs.cmd = cmd
+            }
+        }
+        else {
+            console.log(chalk.red('if option --cmd | -c is provided , must input the commands'))
+        }
+    })
+    // handle the flag --load, when you watch one nodejs and reload another nodejs
+    .option('--load | -l', async ({index, param}, args) => {
+        // file that will be reloading
+        const loadFile = args[index+1]?
+                        join(ROOTPATH, args[index+1])
+                        : ''
+        const needHelpForCMD = args[index+1] == '-h'
+                            || args[index+1] == '--help'
+        if(!needHelpForCMD) {
+            await checkExist(loadFile, (type, ext) => {
+                if(type == 'file' && ext == '.js') {
+                    watchArgs.load = loadFile
+                }
+                else {
+                    console.log(chalk.red('if option --load | -l is provided, the load file must be nodejs'))
+                }
+            }, () => {
+                console.log(chalk.red(`the load file could't be found`))
             })
         }
-        // console.log(res)
     })
-    .catch((res) => {
-        // handle all errors
-        const isError = Object.prototype.toString.call(res) == '[object Error]'
-        if(isError) {
-            console.log(res)
-        }
-        const type = res.type
-        const index = res.index
+    // when you watch a file or a directory and reload something
+    .param({
+        index: 0,
+        async action({index, param}, args) {
+            // file that is being wathced
+            const file = join(ROOTPATH, param)
+            // command that will be reloading
+            const commandsNeedReload = watchArgs.cmd.length >= 1 
+            && watchArgs.cmd
+            // another file that will be reloading
+            const fileNeedReload = watchArgs.load
+            // argments that will be reloading
+            const fileArgs = watchArgs.argument
+            // options list exclude --param | -p
+            const optList = ['--load', '-l', '--cmd', '-c']
 
-        if(index == 0 && type == 'version') {
-            console.log(require('../package.json').version)
-        }
-        else if(index == 0 && (type == 'help' || type == 'error')) {
-            showUsage()
-            console.log(chalk.yellow('hotload must be before a valid nodejs with .js extname'))
-        }
-        else if(index == 1 && type == 'error') {
-            console.log(chalk.red('if an option is provided ,it is only could be --load or --cmd'))
+            await checkExist(file, (type, ext) => {
+                const onlyReloadNodejsItself = args.every(item => !optList.includes(item))
+                
+                if(fileNeedReload) {
+                    watch(file, {target: fileNeedReload, params: fileArgs})
+                }
+                else if(commandsNeedReload) {
+                    watch(file, () => {
+                        // in order to make the npm CLI compatible, must use exec to execute .bat or .cmd with shell mode
+                        // 为了兼容npm包的全局命令，只能使用exec衍生shell来运行bat或cmd文件
+                        return exec(commandsNeedReload.join(' '), (err, stdout, stderr) => {
+                            if(err) {
+                                console.log(err)
+                            }
+                            console.log(stdout)
+                        })
+                    })
+                }
+                else if(onlyReloadNodejsItself) {
+                    // you could only watch and reload itself for nodejs 
+                    if(type == 'file' && ext == '.js') {
+                        watch(file, {target: file, params: fileArgs})
+                    }
+                    else {
+                        console.log(chalk.yellow('when you watch a directory or not nodejs file, you must reload a nodejs or cmd'))
+                    }
+                }
+            }, () => {
+                const list = ['-h', '--help', '-V', '--version']
+                if(!list.includes(param)) {
+                    console.log(chalk.yellow('hotload must be before a valid file or directory path'))
+                }
+            })
         }
     })
+    // handle the version flag
+    .version(version)
+    .run()

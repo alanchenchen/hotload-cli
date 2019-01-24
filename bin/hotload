@@ -64,9 +64,7 @@ let watchArgs = {
 program
     .inject(doc)
     // handle the flag -h | --help
-    .param({
-        flag: '-h | --help',
-        action({index, param}, args) {
+    .option('-h | --help', ({index, param}, args) => {
             const helpArg = args[index-1]
             if(helpArg) {
                 // output the proper doc
@@ -85,7 +83,6 @@ program
             else {
                 console.log(renderDoc)
             }
-        }
     })
     // handle the flag --param, when you watch one nodejs with some arguments
     .option('--param | -p', ({index, param}, args) => {

@@ -6,11 +6,11 @@
 
 > A CLI to run a javascrpit or cmd by hot-reloading
 
-> version:  0.0.3
+> version:  0.0.4
 
 > Author:  Alan Chen
 
-> Date: 2019/01/10
+> Date: 2019/01/24
 
 [中文文档](./ChineseREADME.md)
 

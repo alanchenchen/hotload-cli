@@ -80,7 +80,9 @@ const hotLoad = (file, loadFile) => {
     watch(resolve(__dirname, file), {recursive: true}, (type, name) => {
         // console.log(`${name} has been ${type}d`)
         // 通过child_process的connected属性来判断当前子进程是否与主进程通信，用作判断子进程是否会自动退出的依据
-        const subProcessAutoFinished = (subProcess.connected === false && subProcess.exitCode == 0) // 正常自动退出code为0，避免fs.watch因为系统问题多次触发事件而重复打开进程
+        // 避免fs.watch因为系统问题多次触发事件而重复打开进程
+        const subProcessAutoFinished = (subProcess.connected === false && subProcess.exitCode == 0) // 正常自动退出code为0
+                                    || (subProcess.connected === false && subProcess.exitCode == 1) // 出现未被捕获的异常或错误自动退出code为1
         const subProcessNeedKill = (subProcess.connected === true && !subProcess.killed) // 非自动退出killed默认为false，避免fs.watch因为系统问题多次触发事件而重复打开进程
 
         // 监听文件打开的进程会自动关闭，则再次启用一个子进程

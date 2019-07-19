@@ -1,6 +1,6 @@
 {
   "name": "hotload-cli",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "author": "Alan Chen",
   "description": "A cli to run a javascrpit or cmd by hot-reloading",
   "bin": {
@@ -25,7 +25,8 @@
   },
   "dependencies": {
     "@alanchenchen/commandlineflag": "^0.0.5",
-    "chalk": "^2.4.1"
+    "chalk": "^2.4.1",
+    "node-watch": "^0.6.2"
   },
   "engines": {
     "node": ">= v8.11.1"

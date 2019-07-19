@@ -148,15 +148,17 @@ program
                     watch(file, {target: fileNeedReload, params: fileArgs})
                 }
                 else if(commandsNeedReload) {
-                    watch(file, () => {
-                        // in order to make the npm CLI compatible, must use exec to execute .bat or .cmd with shell mode
-                        // 为了兼容npm包的全局命令，只能使用exec衍生shell来运行bat或cmd文件
-                        return exec(commandsNeedReload.join(' '), (err, stdout, stderr) => {
-                            if(err) {
-                                console.log(err)
-                            }
-                            console.log(stdout)
-                        })
+                    watch(file, {
+                        target: () => {
+                            // in order to make the npm CLI compatible, must use exec to execute .bat or .cmd with shell mode
+                            // 为了兼容npm包的全局命令，只能使用exec衍生shell来运行bat或cmd文件
+                            return exec(commandsNeedReload.join(' '), (err, stdout, stderr) => {
+                                if(err) {
+                                    console.log(err)
+                                }
+                                console.log(stdout)
+                            })
+                        }
                     })
                 }
                 else if(onlyReloadNodejsItself) {

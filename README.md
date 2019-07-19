@@ -6,11 +6,11 @@
 
 > A CLI to run a javascrpit or cmd by hot-reloading
 
-> version:  0.0.4
+> version:  0.1.0
 
 > Author:  Alan Chen
 
-> Date: 2019/01/24
+> Date: 2019/07/19
 
 [中文文档](./ChineseREADME.md)
 
@@ -48,7 +48,7 @@ show the version number of CLI
 ``` bash
 $ hotload -V
 
-0.0.3
+0.1.0
 ```
 
 ### -h | --help 

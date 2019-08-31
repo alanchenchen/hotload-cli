@@ -1,8 +1,9 @@
 {
   "name": "hotload-cli",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "Alan Chen",
   "description": "A cli to run a javascrpit or cmd by hot-reloading",
+  "main": "./utils/watch.js",
   "bin": {
     "hotload": "bin/hotload"
   },
@@ -24,7 +25,7 @@
     "email": "739709491@qq.com"
   },
   "dependencies": {
-    "@alanchenchen/commandlineflag": "^0.0.5",
+    "@alanchenchen/commandlineflag": "^0.0.6",
     "chalk": "^2.4.1",
     "node-watch": "^0.6.2"
   },

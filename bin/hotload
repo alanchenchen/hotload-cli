@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-
 const { join, extname } = require('path')
 const { access, statSync } = require('fs')
 const { exec } = require('child_process')

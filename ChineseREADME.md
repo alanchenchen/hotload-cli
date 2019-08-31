@@ -6,11 +6,11 @@
 
 > 一款支持监听nodejs文件并热更新的CLI工具
 
-> version:  0.0.4
+> version:  0.2.0
 
 > Author:  Alan Chen
 
-> Date: 2019/01/24
+> Date: 2019/09/01
 
 ## Features
 1. 支持监听nodejs文件并热更新本身。
